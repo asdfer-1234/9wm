@@ -264,7 +264,7 @@ static void updatenumlockmask(void);
 static void updatesizehints(Client *c);
 static void updatestatus(void);
 static void updatesystray(void);
-static void updatesystrayicongeon(Client *i, int w, int h);
+static void updatesystrayicongeom(Client *i, int w, int h);
 static void updatesystrayiconstate(Client *i, XPropertyEvent *ev);
 static void updatetitle(Client *c);
 static void updatewindowtype(Client *c);
@@ -525,7 +525,6 @@ cleanup(void)
 	Arg a = {.ui = ~0};
 	Layout foo = { "", NULL };
 	Monitor *m;
-	size_t i;
 
 	view(&a);
 	selmon->lt[selmon->sellt] = &foo;
@@ -542,9 +541,9 @@ cleanup(void)
 		free(systray);
 	}
 
-	for (i = 0; i < CurLast; i++)
+	for (size_t i = 0; i < CurLast; i++)
 		drw_cur_free(drw, cursor[i]);
-	for (i = 0; i < LENGTH(colors); i++)
+	for (size_t i = 0; i < LENGTH(colors); i++)
 		free(scheme[i]);
 	free(scheme);
 	XDestroyWindow(dpy, wmcheckwin);
