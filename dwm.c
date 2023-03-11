@@ -101,7 +101,7 @@ typedef union {
 	int i;
 	unsigned int ui;
 	float f;
-	const void *v;
+	const void* v;
 } Arg;
 
 typedef struct {
@@ -149,6 +149,7 @@ struct Monitor {
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
+	int gappx;            /* gaps between windows */
 	unsigned int seltags;
 	unsigned int sellt;
 	unsigned int tagset[2];
@@ -227,6 +228,9 @@ static void quit(const Arg *arg);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void removesystrayicon(Client *i);
 static void resize(Client *c, int x, int y, int w, int h, int interact);
+static void resizeabsolute(Client *c, int x1, int y1, int x2, int y2, int interact);
+static void resizegaps(Client *c, int x, int y, int w, int h, int gap, int interact);
+static void resizeabsolutegaps(Client *c, int x1, int y1, int x2, int y2, int gap, int interact);
 static void resizebarwin(Monitor *m);
 static void resizeclient(Client *c, int x, int y, int w, int h);
 static void resizemouse(const Arg *arg);
@@ -239,8 +243,10 @@ static void sendmon(Client *c, Monitor *m);
 static void setclientstate(Client *c, long state);
 static void setfocus(Client *c);
 static void setfullscreen(Client *c, int fullscreen);
+static void setgaps(const Arg *arg);
 static void setlayout(const Arg *arg);
 static void setmfact(const Arg *arg);
+static void setdefaultname(char* name);
 static void setup(void);
 static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
@@ -747,6 +753,7 @@ createmon(void)
 	m->nmaster = nmaster;
 	m->showbar = showbar;
 	m->topbar = topbar;
+	m->gappx = gappx;
 	m->lt[0] = &layouts[0];
 	m->lt[1] = &layouts[1 % LENGTH(layouts)];
 	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
@@ -1441,7 +1448,24 @@ void
 resize(Client *c, int x, int y, int w, int h, int interact)
 {
 	if (applysizehints(c, &x, &y, &w, &h, interact))
-		resizeclient(c, x, y, w, h);
+		resizeclient(c, x, y, w - borderpx * 2, h - borderpx * 2);
+}
+
+void
+resizeabsolute(Client *c, int x1, int y1, int x2, int y2, int interact){
+	resize(c, x1, y1, x2 - x1, y2 - y1, interact);
+}
+
+void
+resizegaps(Client *c, int x, int y, int w, int h, int gap, int interact){
+	int firstgap = gap / 2;
+	int secondgap = gap - firstgap;
+	resize(c, x + secondgap, y + secondgap, w - gap, h - gap, interact); 
+}
+
+void
+resizeabsolutegaps(Client *c, int x1, int y1, int x2, int y2, int gap, int interact){
+	resizegaps(c, x1, y1, x2 - x1, y2 - y1, gap, interact);
 }
 
 void
@@ -1702,6 +1726,16 @@ setfullscreen(Client *c, int fullscreen)
 }
 
 void
+setgaps(const Arg *arg)
+{
+	if ((arg->i == 0) || (selmon->gappx + arg->i < 0))
+		selmon->gappx = 0;
+	else
+		selmon->gappx += arg->i;
+	arrange(selmon);
+}
+
+void
 setlayout(const Arg *arg)
 {
 	if (!arg || !arg->v || arg->v != selmon->lt[selmon->sellt])
@@ -1728,6 +1762,13 @@ setmfact(const Arg *arg)
 		return;
 	selmon->mfact = f;
 	arrange(selmon);
+}
+
+void
+setdefaultname(char* name)
+{
+	if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext)))
+		strcpy(stext, name);
 }
 
 void
@@ -1882,29 +1923,45 @@ tagmon(const Arg *arg)
 void
 tile(Monitor *m)
 {
-	unsigned int i, n, h, mw, my, ty;
 	Client *c;
-
+	unsigned int n;
 	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
 	if (n == 0)
 		return;
 
-	if (n > m->nmaster)
-		mw = m->nmaster ? m->ww * m->mfact : 0;
-	else
-		mw = m->ww;
-	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
+	unsigned int gap = m->gappx;
+	unsigned int firstgap = gap / 2;
+	unsigned int secondgap = gap - firstgap;
+	unsigned int
+		gapstartx = m->wx + firstgap,
+		gapstarty = m->wy + firstgap,
+		gapendx = m->wx + m->ww - secondgap,
+		gapendy = m->wy + m->wh - secondgap,
+		gapsizex = gapendx - gapstartx,
+		gapsizey = gapendy - gapstarty; /* window size gapped with firsthalfgap and secondhalfgap */	
+	c = nexttiled(m->clients);
+	unsigned int mastercount = m->nmaster < n ? m->nmaster : n;
+	unsigned int slavecount = n - mastercount; /* slavecount is unused if m->nmaster is below 0 */
+	unsigned int between;
+	if(n <= m->nmaster){
+		between = gapendx;
+	}
+	else if(m->nmaster == 0){
+		between = gapstartx;
+	}
+	else{
+		between = gapstartx + gapsizex * m->mfact;
+	}
+
+	for (unsigned int i = 0; c; c = nexttiled(c->next), i++){
 		if (i < m->nmaster) {
-			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
-			resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
-			if (my + HEIGHT(c) < m->wh)
-				my += HEIGHT(c);
-		} else {
-			h = (m->wh - ty) / (n - i);
-			resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw), 0);
-			if (ty + HEIGHT(c) < m->wh)
-				ty += HEIGHT(c);
+			resizeabsolutegaps(c, gapstartx, gapstarty + gapsizey * i / mastercount, between, gapstarty + gapsizey * (i + 1) / mastercount, gap, 0);
 		}
+		else {
+			resizeabsolutegaps(c, between, gapstarty + gapsizey * (i - mastercount) / slavecount, gapendx, gapstarty + gapsizey * (i - mastercount + 1) / slavecount, gap, 0);
+		}
+
+	}
 }
 
 void
