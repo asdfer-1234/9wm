@@ -68,6 +68,10 @@ static const char *dmenucmd[]   = { "dmenu_run", "-m", dmenumon, "-fn", dmenufon
 static const char *termcmd[]    = { "st", NULL };
 static const char *firefoxcmd[] = { "firefox", NULL };
 
+static const char *upvol[]   = { "amixer", "-q", "set", "Master", "5%+", "unmute", NULL };
+static const char *downvol[] = { "amixer", "-q", "set", "Master", "5%-", "unmute", NULL };
+static const char *mutevol[] = { "amixer", "-q", "set", "Master", "toggle", NULL };
+
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ MODKEY,                       XK_space,  spawn,          {.v = dmenucmd } },
@@ -87,6 +91,9 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_minus,  setgaps,        {.i = -1 } },
 	{ MODKEY,                       XK_equal,  setgaps,        {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_equal,  setgaps,        {.i = 0 } },
+	{ MODKEY,                       XK_t,      spawn,          {.v = upvol} },
+	{ MODKEY,                       XK_g,      spawn,          {.v = downvol} },
+	{ MODKEY,                       XK_v,      spawn,          {.v = mutevol} },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)
