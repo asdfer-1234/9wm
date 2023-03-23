@@ -53,8 +53,8 @@
 #define ISVISIBLE(C)            ((C->tags & C->mon->tagset[C->mon->seltags]))
 #define LENGTH(X)               (sizeof X / sizeof X[0])
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
-#define WIDTH(X)                ((X)->w + 2 * (X)->bw)
-#define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
+#define WIDTH(X)                ((X)->area.size.x + 2 * (X)->bw)
+#define HEIGHT(X)               ((X)->area.size.y + 2 * (X)->bw)
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 #define TEXTW(X)                (drw_fontset_getwidth(drw, (X)) + lrpad)
 #define XRDB_LOAD_COLOR(R,V)    if (XrmGetResource(xrdb, R, NULL, &type, &value) == True) { \
@@ -112,14 +112,26 @@ typedef struct {
 	const Arg arg;
 } Button;
 
+typedef struct {
+	int x, y;
+} Position;
+
+typedef struct {
+	Position start, size;
+} Area;
+
 typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
 	char name[256];
 	float mina, maxa;
-	int x, y, w, h;
-	int oldx, oldy, oldw, oldh;
-	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
+	Area area;
+	Area oldArea;
+	int hintsvalid;
+	Position base;
+	Position inc;
+	Position min;
+	Position max;
 	int bw, oldbw;
 	unsigned int tags;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
@@ -147,8 +159,8 @@ struct Monitor {
 	int nmaster;
 	int num;
 	int by;               /* bar geometry */
-	int mx, my, mw, mh;   /* screen size */
-	int wx, wy, ww, wh;   /* window area  */
+	Area monitorArea;
+	Area windowArea;
 	int gappx;            /* gaps between windows */
 	unsigned int seltags;
 	unsigned int sellt;
@@ -179,6 +191,7 @@ struct Systray {
 };
 
 /* function declarations */
+static Area getAbsolute(Position start, Position end);
 static void applyrules(Client *c);
 static int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact);
 static void arrange(Monitor *m);
@@ -225,9 +238,9 @@ static Client *nexttiled(Client *c);
 static void pop(Client *c);
 static void propertynotify(XEvent *e);
 static void quit(const Arg *arg);
-static Monitor *recttomon(int x, int y, int w, int h);
+static Monitor *recttomon(Area area);
 static void removesystrayicon(Client *i);
-static void resize(Client *c, int x, int y, int w, int h, int interact);
+static void resize(Client *c, Area area, int interact);
 static void resizeabsolute(Client *c, int x1, int y1, int x2, int y2, int interact);
 static void resizegaps(Client *c, int x, int y, int w, int h, int gap, int interact);
 static void resizeabsolutegaps(Client *c, int x1, int y1, int x2, int y2, int gap, int interact);
@@ -381,9 +394,9 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 			*y = 0;
 	} else {
 		if (*x >= m->wx + m->ww)
-			*x = m->wx + m->ww - WIDTH(c);
-		if (*y >= m->wy + m->wh)
-			*y = m->wy + m->wh - HEIGHT(c);
+			*x = m->windowArea.start.x + m->windowArea.size.x - WIDTH(c);
+		if (*y >= m->wy + m->windowArea.size.y)
+			*y = m->windowArea.start.y + m->windowArea.size.y - HEIGHT(c);
 		if (*x + *w + 2 * c->bw <= m->wx)
 			*x = m->wx;
 		if (*y + *h + 2 * c->bw <= m->wy)
@@ -427,6 +440,11 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 			*h = MIN(*h, c->maxh);
 	}
 	return *x != c->x || *y != c->y || *w != c->w || *h != c->h;
+}
+
+Area getAbsolute(Position start, Position end){
+	Area area = {{start.x, start.y}, {end.x - start.x, end.y - start.y}};
+	return area;
 }
 
 void
@@ -1418,13 +1436,13 @@ quit(const Arg *arg)
 }
 
 Monitor *
-recttomon(int x, int y, int w, int h)
+recttomon(Area area)
 {
 	Monitor *m, *r = selmon;
 	int a, area = 0;
 
 	for (m = mons; m; m = m->next)
-		if ((a = INTERSECT(x, y, w, h, m)) > area) {
+		if ((a = INTERSECT(area.x, area.y, area.w, area.h, m)) > area) {
 			area = a;
 			r = m;
 		}
@@ -1445,10 +1463,10 @@ removesystrayicon(Client *i)
 }
 
 void
-resize(Client *c, int x, int y, int w, int h, int interact)
+resize(Client *c, Area area, int interact)
 {
-	if (applysizehints(c, &x, &y, &w, &h, interact))
-		resizeclient(c, x, y, w, h);
+	if (applysizehints(c, &area, interact))
+		resizeclient(c, area);
 }
 
 void
@@ -1476,17 +1494,18 @@ resizebarwin(Monitor *m) {
 	XMoveResizeWindow(dpy, m->barwin, m->wx, m->by, w, bh);
 }
 
+Area XWindowChangesArea(XWindowChanges *wc){
+	return {{wc->x, wc->y}, {wc->width, wc->height}};
+}
+
 void
-resizeclient(Client *c, int x, int y, int w, int h)
+resizeclient(Client *c, Area area)
 {
 	XWindowChanges wc;
-
-	c->oldx = c->x; c->x = wc.x = x;
-	c->oldy = c->y; c->y = wc.y = y;
-	c->oldw = c->w; c->w = wc.width = w;
-	c->oldh = c->h; c->h = wc.height = h;
+	c->old = c->area;
+	c->area = XWindowChangesArea(wc);
 	wc.width -= c->bw * 2;
-	wc.height -= c->bw* 2;
+	wc.height -= c->bw * 2;
 	wc.border_width = c->bw;
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
@@ -1545,18 +1564,18 @@ resizemouse(const Arg *arg)
 			&& c->mon->wy + nh >= selmon->wy && c->mon->wy + nh <= selmon->wy + selmon->wh)
 			{
 				if (!c->isfloating && selmon->lt[selmon->sellt]->arrange
-				&& (abs(nw - c->w) > snap || abs(nh - c->h) > snap))
+				&& (abs(nw - c->area.size.x) > snap || abs(nh - c->area.size.y) > snap))
 					togglefloating(NULL);
 			}
 			if (!selmon->lt[selmon->sellt]->arrange || c->isfloating)
-				resize(c, c->x, c->y, nw, nh, 1);
+				resize(c, (Area){c->area.start, {nw, nh}}, 1);
 			break;
 		}
 	} while (ev.type != ButtonRelease);
-	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
+	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->area.size.x + c->bw - 1, c->area.size.y + c->bw - 1);
 	XUngrabPointer(dpy, CurrentTime);
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
-	if ((m = recttomon(c->x, c->y, c->w, c->h)) != selmon) {
+	if ((m = recttomon(c->area)) != selmon) {
 		sendmon(c, m);
 		selmon = m;
 		focus(NULL);
@@ -1710,7 +1729,7 @@ setfullscreen(Client *c, int fullscreen)
 		c->oldbw = c->bw;
 		c->bw = 0;
 		c->isfloating = 1;
-		resizeclient(c, c->mon->mx, c->mon->my, c->mon->mw, c->mon->mh);
+		resizeclient(c, c->mon->monitorArea);
 		XRaiseWindow(dpy, c->win);
 	} else if (!fullscreen && c->isfullscreen){
 		XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32,
@@ -1718,11 +1737,7 @@ setfullscreen(Client *c, int fullscreen)
 		c->isfullscreen = 0;
 		c->isfloating = c->oldstate;
 		c->bw = c->oldbw;
-		c->x = c->oldx;
-		c->y = c->oldy;
-		c->w = c->oldw;
-		c->h = c->oldh;
-		resizeclient(c, c->x, c->y, c->w, c->h);
+		c->area = c->oldArea;
 		arrange(c->mon);
 	}
 }
@@ -1879,14 +1894,14 @@ showhide(Client *c)
 		return;
 	if (ISVISIBLE(c)) {
 		/* show clients top down */
-		XMoveWindow(dpy, c->win, c->x, c->y);
+		XMoveWindow(dpy, c->win, c->area.start.x, c->area.start.y);
 		if ((!c->mon->lt[c->mon->sellt]->arrange || c->isfloating) && !c->isfullscreen)
-			resize(c, c->x, c->y, c->w, c->h, 0);
+			resize(c, c->area, 0);
 		showhide(c->snext);
 	} else {
 		/* hide clients bottom up */
 		showhide(c->snext);
-		XMoveWindow(dpy, c->win, WIDTH(c) * -2, c->y);
+		XMoveWindow(dpy, c->win, WIDTH(c) * -2, c->area.start.y);
 	}
 }
 
@@ -1935,10 +1950,10 @@ tile(Monitor *m)
 	unsigned int firstgap = gap / 2;
 	unsigned int secondgap = gap - firstgap;
 	unsigned int
-		gapstartx = m->wx + firstgap,
-		gapstarty = m->wy + firstgap,
-		gapendx = m->wx + m->ww - secondgap,
-		gapendy = m->wy + m->wh - secondgap,
+		gapstartx = m->windowArea.start.x + firstgap,
+		gapstarty = m->windowArea.start.y + firstgap,
+		gapendx = m->windowArea.start.x + m->windowArea.size.x - secondgap,
+		gapendy = m->windowArea.start.y + m->windowArea.size.y - secondgap,
 		gapsizex = gapendx - gapstartx,
 		gapsizey = gapendy - gapstarty; /* window size gapped with firsthalfgap and secondhalfgap */	
 	c = nexttiled(m->clients);
@@ -1979,7 +1994,7 @@ togglebar(const Arg *arg)
 		else if (selmon->showbar) {
 			wc.y = 0;
 			if (!selmon->topbar)
-				wc.y = selmon->mh - bh;
+				wc.y = selmon->monitorArea.size.y - bh;
 		}
 		XConfigureWindow(dpy, systray->win, CWY, &wc);
 	}
@@ -1995,8 +2010,7 @@ togglefloating(const Arg *arg)
 		return;
 	selmon->sel->isfloating = !selmon->sel->isfloating || selmon->sel->isfixed;
 	if (selmon->sel->isfloating)
-		resize(selmon->sel, selmon->sel->x, selmon->sel->y,
-			selmon->sel->w, selmon->sel->h, 0);
+		resize(selmon->sel, selmon->sel->area, 0);
 	arrange(selmon);
 }
 
@@ -2100,10 +2114,10 @@ updatebars(void)
 	for (m = mons; m; m = m->next) {
 		if (m->barwin)
 			continue;
-		w = m->ww;
+		w = m->windowArea.size.x;
 		if (showsystray && m == systraytomon(m))
 			w -= getsystraywidth();
-		m->barwin = XCreateWindow(dpy, root, m->wx, m->by, w, bh, 0, DefaultDepth(dpy, screen),
+		m->barwin = XCreateWindow(dpy, root, m->windowArea.start.x, m->by, w, bh, 0, DefaultDepth(dpy, screen),
 				CopyFromParent, DefaultVisual(dpy, screen),
 				CWOverrideRedirect|CWBackPixmap|CWEventMask, &wa);
 		XDefineCursor(dpy, m->barwin, cursor[CurNormal]->cursor);
@@ -2117,12 +2131,12 @@ updatebars(void)
 void
 updatebarpos(Monitor *m)
 {
-	m->wy = m->my;
-	m->wh = m->mh;
+	m->windowArea.start.x = m->monitorArea.start.x;
+	m->windowArea.start.y = m->monitorArea.start.y;
 	if (m->showbar) {
-		m->wh -= bh;
-		m->by = m->topbar ? m->wy : m->wy + m->wh;
-		m->wy = m->topbar ? m->wy + bh : m->wy;
+		m->windowArea.size.y -= bh;
+		m->by = m->topbar ? m->windowArea.start.y : m->windowArea.start.y + m->windowArea.size.y;
+		m->windowArea.start.y = m->topbar ? m->windowArea.start.y + bh : m->windowArea.start.y;
 	} else
 		m->by = -bh;
 }
@@ -2173,15 +2187,15 @@ updategeom(void)
 		}
 		for (i = 0, m = mons; i < nn && m; m = m->next, i++)
 			if (i >= n
-			|| unique[i].x_org != m->mx || unique[i].y_org != m->my
-			|| unique[i].width != m->mw || unique[i].height != m->mh)
+			|| unique[i].x_org != m->monitorArea.start.x || unique[i].y_org != m->monitorArea.start.y
+			|| unique[i].width != m->monitorArea.size.x || unique[i].height != m->monitorArea.size.y)
 			{
 				dirty = 1;
 				m->num = i;
-				m->mx = m->wx = unique[i].x_org;
-				m->my = m->wy = unique[i].y_org;
-				m->mw = m->ww = unique[i].width;
-				m->mh = m->wh = unique[i].height;
+				m->monitorArea.start.x = m->windowArea.start.x = unique[i].x_org;
+				m->monitorArea.start.y = m->windowArea.start.y = unique[i].y_org;
+				m->monitorArea.size.x = m->windowArea.size.x = unique[i].width;
+				m->monitorArea.size.y = m->windowArea.size.y = unique[i].height;
 				updatebarpos(m);
 			}
 		/* removed monitors if n > nn */
@@ -2205,10 +2219,10 @@ updategeom(void)
 	{ /* default monitor setup */
 		if (!mons)
 			mons = createmon();
-		if (mons->mw != sw || mons->mh != sh) {
+		if (mons->monitorArea.size.x != sw || mons->monitorArea.size.y != sh) {
 			dirty = 1;
-			mons->mw = mons->ww = sw;
-			mons->mh = mons->wh = sh;
+			mons->monitorArea.size.x = mons->windowArea.size.x = sw;
+			mons->monitorArea.size.y = mons->windowArea.size.y = sh;
 			updatebarpos(mons);
 		}
 	}
@@ -2245,37 +2259,37 @@ updatesizehints(Client *c)
 		/* size is uninitialized, ensure that size.flags aren't used */
 		size.flags = PSize;
 	if (size.flags & PBaseSize) {
-		c->basew = size.base_width;
-		c->baseh = size.base_height;
+		c->base.x = size.base_width;
+		c->base.y = size.base_height;
 	} else if (size.flags & PMinSize) {
-		c->basew = size.min_width;
-		c->baseh = size.min_height;
+		c->base.x = size.min_width;
+		c->base.y = size.min_height;
 	} else
-		c->basew = c->baseh = 0;
+		c->base.x = c->base.y = 0;
 	if (size.flags & PResizeInc) {
-		c->incw = size.width_inc;
-		c->inch = size.height_inc;
+		c->inc.x = size.width_inc;
+		c->inc.y = size.height_inc;
 	} else
-		c->incw = c->inch = 0;
+		c->inc.x = c->inc.y = 0;
 	if (size.flags & PMaxSize) {
-		c->maxw = size.max_width;
-		c->maxh = size.max_height;
+		c->max.x = size.max_width;
+		c->max.y = size.max_height;
 	} else
-		c->maxw = c->maxh = 0;
+		c->max.x = c->max.y = 0;
 	if (size.flags & PMinSize) {
-		c->minw = size.min_width;
-		c->minh = size.min_height;
+		c->min.x = size.min_width;
+		c->min.y = size.min_height;
 	} else if (size.flags & PBaseSize) {
-		c->minw = size.base_width;
-		c->minh = size.base_height;
+		c->min.x = size.base_width;
+		c->min.y = size.base_height;
 	} else
-		c->minw = c->minh = 0;
+		c->min.x = c->min.y = 0;
 	if (size.flags & PAspect) {
 		c->mina = (float)size.min_aspect.y / size.min_aspect.x;
 		c->maxa = (float)size.max_aspect.x / size.max_aspect.y;
 	} else
 		c->maxa = c->mina = 0.0;
-	c->isfixed = (c->maxw && c->maxh && c->maxw == c->minw && c->maxh == c->minh);
+	c->isfixed = (c->max.x && c->max.y && c->max.x == c->min.x && c->max.y == c->min.y);
 	c->hintsvalid = 1;
 }
 
@@ -2293,21 +2307,21 @@ void
 updatesystrayicongeom(Client *i, int w, int h)
 {
 	if (i) {
-		i->h = bh;
+		i->area.size.y = bh;
 		if (w == h)
-			i->w = bh;
+			i->area.size.x = bh;
 		else if (h == bh)
-			i->w = w;
+			i->area.size.x = w;
 		else
-			i->w = (int) ((float)bh * ((float)w / (float)h));
-		applysizehints(i, &(i->x), &(i->y), &(i->w), &(i->h), False);
+			i->area.size.x = (int) ((float)bh * ((float)w / (float)h));
+		applysizehints(i, &(i->area.start.x), &(i->area.start.y), &(i->area.size.x), &(i->area.size.y), False);
 		/* force icons into the systray dimensions if they don't want to */
-		if (i->h > bh) {
-			if (i->w == i->h)
-				i->w = bh;
+		if (i->area.size.y > bh) {
+			if (i->area.size.x == i->area.size.y)
+				i->area.size.x = bh;
 			else
-				i->w = (int) ((float)bh * ((float)i->w / (float)i->h));
-			i->h = bh;
+				i->area.size.x = (int) ((float)bh * ((float)i->area.size.x / (float)i->area.size.y));
+			i->area.size.y = bh;
 		}
 	}
 }
@@ -2347,7 +2361,7 @@ updatesystray(void)
 	XWindowChanges wc;
 	Client *i;
 	Monitor *m = systraytomon(NULL);
-	unsigned int x = m->mx + m->mw;
+	unsigned int x = m->monitorArea.start.x + m->monitorArea.size.x;
 	unsigned int sw = TEXTW(stext) - lrpad + systrayspacing;
 	unsigned int w = 1;
 
@@ -2386,9 +2400,9 @@ updatesystray(void)
 		XChangeWindowAttributes(dpy, i->win, CWBackPixel, &wa);
 		XMapRaised(dpy, i->win);
 		w += systrayspacing;
-		i->x = w;
-		XMoveResizeWindow(dpy, i->win, i->x, 0, i->w, i->h);
-		w += i->w;
+		i->area.start.x = w;
+		XMoveResizeWindow(dpy, i->win, i->area.start.x, 0, i->area.size.x, i->area.size.y);
+		w += i->area.size.x;
 		if (i->mon != m)
 			i->mon = m;
 	}
@@ -2488,8 +2502,10 @@ wintomon(Window w)
 	Client *c;
 	Monitor *m;
 
-	if (w == root && getrootptr(&x, &y))
-		return recttomon(x, y, 1, 1);
+	if (w == root && getrootptr(&x, &y)){
+		Area area = {{x, y}, {1, 1}};
+		return recttomon(area);
+	}
 	for (m = mons; m; m = m->next)
 		if (w == m->barwin)
 			return m;
