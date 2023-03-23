@@ -91,6 +91,7 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_minus,  setgaps,        {.i = -1 } },
 	{ MODKEY,                       XK_equal,  setgaps,        {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_equal,  setgaps,        {.i = 0 } },
+	{ MODKEY,                       XK_f,      togglefullscreen, {0} },
 	{ MODKEY,                       XK_t,      spawn,          {.v = upvol} },
 	{ MODKEY,                       XK_g,      spawn,          {.v = downvol} },
 	{ MODKEY,                       XK_v,      spawn,          {.v = mutevol} },
