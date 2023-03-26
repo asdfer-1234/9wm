@@ -87,7 +87,7 @@
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-enum { SchemeNorm, SchemeSel }; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemeBar0, SchemeBar1, SchemeBar2, SchemeBar3, SchemeBar4, SchemeBar5, Scheme0, Scheme1, Scheme2, Scheme3, Scheme4, Scheme5, Scheme6, Scheme7, Scheme8, Scheme9, Scheme10, Scheme11, Scheme12, Scheme13, Scheme14, Scheme15,  }; /* color schemes */
 enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetSystemTray, NetSystemTrayOP, NetSystemTrayOrientation, NetSystemTrayOrientationHorz,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
@@ -822,22 +822,50 @@ drawbar(Monitor *m)
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
+	char *ts = stext;
+	char *tp = stext;
+	int tx = 0;
+	char ctmp;
 	Client *c;
 
 	if (!m->showbar)
 		return;
 
-	drw_setscheme(drw, scheme[SchemeSel]);
+	drw_setscheme(drw, scheme[SchemeNorm]);
 	drw_rect(drw, 0, 0, m->mw, bh, 1, 1);
 
 	if(showsystray && m == systraytomon(m) && !systrayonleft)
 		stw = getsystraywidth();
 
 	/* draw status first so it can be overdrawn by tags later */
+	int correct = 0; 
+	char *xcape = malloc (sizeof (char) * 128);
+	memset(xcape,0,sizeof (char) * 128);
+	for ( ; *ts != '\0' ; ts++) {    
+		if (*ts <= LENGTH(colors)) {
+			sprintf(xcape,"%c",*ts);
+			correct += TEXTW(xcape) - lrpad;
+		}
+	}
+	free(xcape);
+   	ts = stext;
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		drw_setscheme(drw, scheme[SchemeNorm]);
-		tw = TEXTW(stext) - lrpad / 2 + 2; /* 2px extra right padding */
-		drw_text(drw, m->ww - tw - stw, 0, tw, bt, lrpad / 2 - 2, stext, 0);
+
+		tw = TEXTW(stext) - lrpad / 2 + 2 - correct; /* 2px extra right padding and correction for escape sequences */
+		while(1){
+			if ((unsigned int)*ts > LENGTH(colors)) { ts++; continue; }
+			ctmp = *ts;
+			*ts = '\0';
+			drw_text(drw, m->mw - tw - stw + tx, 0, tw - tx, bt, 0, tp, 0);
+			tx += TEXTW(tp) - lrpad;
+			if(ctmp == '\0'){
+				break;
+			}
+			drw_setscheme(drw, scheme[(unsigned int)(ctmp-1)]);
+			*ts = ctmp;
+			tp = ++ts;
+		}
 	}
 
 	resizebarwin(m);
@@ -1180,6 +1208,22 @@ loadxrdb()
         XRDB_LOAD_COLOR("dwm.selbordercolor", selbordercolor);
         XRDB_LOAD_COLOR("dwm.selbgcolor", selbgcolor);
         XRDB_LOAD_COLOR("dwm.selfgcolor", selfgcolor);
+	XRDB_LOAD_COLOR("dwm.color0", color0);
+	XRDB_LOAD_COLOR("dwm.color1", color1);
+	XRDB_LOAD_COLOR("dwm.color2", color2);
+	XRDB_LOAD_COLOR("dwm.color3", color3);
+	XRDB_LOAD_COLOR("dwm.color4", color4);
+	XRDB_LOAD_COLOR("dwm.color5", color5);
+	XRDB_LOAD_COLOR("dwm.color6", color6);
+	XRDB_LOAD_COLOR("dwm.color7", color7);
+	XRDB_LOAD_COLOR("dwm.color8", color8);
+	XRDB_LOAD_COLOR("dwm.color9", color9);
+	XRDB_LOAD_COLOR("dwm.color10", color10);
+	XRDB_LOAD_COLOR("dwm.color11", color11);
+	XRDB_LOAD_COLOR("dwm.color12", color12);
+	XRDB_LOAD_COLOR("dwm.color13", color13);
+	XRDB_LOAD_COLOR("dwm.color14", color14);
+	XRDB_LOAD_COLOR("dwm.color15", color15);
       }
     }
   }

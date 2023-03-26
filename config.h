@@ -2,8 +2,8 @@
 
 /* appearance */
 static const unsigned int barmargin = 4;
-static const unsigned int borderpx  = 1;        /* border pixel of windows */
-static const unsigned int gappx     = 10;        /* gaps between windows */
+static const unsigned int borderpx  = 2;        /* border pixel of windows */
+static const unsigned int gappx     = 0;        /* gaps between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const unsigned int systraypinning = 0;   /* 0: sloppy systray follows selected monitor, >0: pin systray to monitor X */
 static const unsigned int systrayonleft = 0;    /* 0: systray in the right corner, >0: systray on left of status text */
@@ -21,10 +21,48 @@ static char normfgcolor[]           = "#bbbbbb";
 static char selfgcolor[]            = "#eeeeee";
 static char selbordercolor[]        = "#005577";
 static char selbgcolor[]            = "#005577";
+static char color0[]                = "#ffffff";
+static char color1[]                = "#ffffff";
+static char color2[]                = "#ffffff";
+static char color3[]                = "#ffffff";
+static char color4[]                = "#ffffff";
+static char color5[]                = "#ffffff";
+static char color6[]                = "#ffffff";
+static char color7[]                = "#ffffff";
+static char color8[]                = "#ffffff";
+static char color9[]                = "#ffffff";
+static char color10[]               = "#ffffff";
+static char color11[]               = "#ffffff";
+static char color12[]               = "#ffffff";
+static char color13[]               = "#ffffff";
+static char color14[]               = "#ffffff";
+static char color15[]               = "#ffffff";
 static char *colors[][3] = {
-	/*               fg         bg         border   */
+	/*               fg           bg           border   */
 	[SchemeNorm] = { normfgcolor, normbgcolor, normbordercolor },
 	[SchemeSel]  = { selfgcolor,  selbgcolor,  selbordercolor  },
+	[SchemeBar0] = { color9,      normbgcolor, normbordercolor },
+	[SchemeBar1] = { color10,     normbgcolor, normbordercolor },
+	[SchemeBar2] = { color11,     normbgcolor, normbordercolor },
+	[SchemeBar3] = { color12,     normbgcolor, normbordercolor },
+	[SchemeBar4] = { color13,     normbgcolor, normbordercolor },
+	[SchemeBar5] = { color14,     normbgcolor, normbordercolor },
+	[Scheme0]    = { color0,      normbgcolor, normbordercolor },
+	[Scheme1]    = { color1,      normbgcolor, normbordercolor },
+	[Scheme2]    = { color2,      normbgcolor, normbordercolor },
+	[Scheme3]    = { color3,      normbgcolor, normbordercolor },
+	[Scheme4]    = { color4,      normbgcolor, normbordercolor },
+	[Scheme5]    = { color5,      normbgcolor, normbordercolor },
+	[Scheme6]    = { color6,      normbgcolor, normbordercolor },
+	[Scheme7]    = { color7,      normbgcolor, normbordercolor },
+	[Scheme8]    = { color8,      normbgcolor, normbordercolor },
+	[Scheme9]    = { color9,      normbgcolor, normbordercolor },
+	[Scheme10]   = { color10,     normbgcolor, normbordercolor },
+	[Scheme11]   = { color11,     normbgcolor, normbordercolor },
+	[Scheme12]   = { color12,     normbgcolor, normbordercolor },
+	[Scheme13]   = { color13,     normbgcolor, normbordercolor },
+	[Scheme14]   = { color14,     normbgcolor, normbordercolor },
+	[Scheme15]   = { color15,     normbgcolor, normbordercolor },
 };
 
 /* tagging */
@@ -37,6 +75,7 @@ static const Rule rules[] = {
 	 */
 	/* class      instance    title       tags mask     isfloating   monitor */
 	{ "class",    NULL,       NULL,       0,            0,           -1 },
+	{ "class",    NULL,       NULL,       1 << 4,       0,           -1 },
 };
 
 /* layout(s) */
