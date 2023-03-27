@@ -75,7 +75,7 @@ static const Rule rules[] = {
 	 */
 	/* class      instance    title       tags mask     isfloating   monitor */
 	{ "class",    NULL,       NULL,       0,            0,           -1 },
-	{ "class",    NULL,       NULL,       1 << 4,       0,           -1 },
+	{ "discord",  NULL,       NULL,       1 << 3,       0,           -1 },
 };
 
 /* layout(s) */
@@ -84,11 +84,14 @@ static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
 static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
 
+
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "[]=",      tile },    /* first entry is default */
-	{ "><>",      NULL },    /* no layout function means floating behavior */
-	{ "[M]",      monocle },
+	{ "=",      tile },    /* first entry is default */
+	{ " ",      NULL },    /* no layout function means floating behavior */
+	{ "[",      monocle },
+	{ "@",      spiral },
+	{ "\\",     dwindle },
 };
 
 /* key definitions */
@@ -111,6 +114,7 @@ static const char *firefoxcmd[] = { "firefox", NULL };
 static const char *upvol[]   = { "amixer", "-q", "set", "Master", "5%+", "unmute", NULL };
 static const char *downvol[] = { "amixer", "-q", "set", "Master", "5%-", "unmute", NULL };
 static const char *mutevol[] = { "amixer", "-q", "set", "Master", "toggle", NULL };
+static const char *updatebar[]={ "bash" "~/computer/packages/suckless/dwm-bar/dwm_bar_onetime.sh" };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -135,6 +139,9 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_t,      spawn,          {.v = upvol} },
 	{ MODKEY,                       XK_g,      spawn,          {.v = downvol} },
 	{ MODKEY,                       XK_v,      spawn,          {.v = mutevol} },
+	{ MODKEY,                       XK_z,      setlayout,      {.v = &layouts[0]} },
+	{ MODKEY,                       XK_x,      setlayout,      {.v = &layouts[3]} },
+	{ MODKEY,                       XK_c,      setlayout,      {.v = &layouts[4]} },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)

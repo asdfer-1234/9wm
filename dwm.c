@@ -285,6 +285,9 @@ static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void xrdb(const Arg *arg);
 static void zoom(const Arg *arg);
+static void fibonacci(Monitor *mon, char s);
+static void dwindle(Monitor *mon);
+static void spiral(Monitor *mon);
 
 /* variables */
 static Systray *systray = NULL;
@@ -824,8 +827,8 @@ drawbar(Monitor *m)
 	unsigned int i, occ = 0, urg = 0;
 	char *ts = stext;
 	char *tp = stext;
-	int tx = 0;
 	char ctmp;
+	int tx = 0;
 	Client *c;
 
 	if (!m->showbar)
@@ -2626,6 +2629,72 @@ zoom(const Arg *arg)
 	if (c == nexttiled(selmon->clients) && !(c = nexttiled(c->next)))
 		return;
 	pop(c);
+}
+
+
+void
+fibonacci(Monitor *mon, char s) {
+
+	Client *c;
+	unsigned int n;
+	for(n = 0, c = nexttiled(mon->clients); c; c = nexttiled(c->next), n++);
+	if(n == 0)
+		return;
+	unsigned int firstgap = mon->gappx / 2;
+	unsigned int secondgap = mon->gappx - firstgap;
+	unsigned int nx = mon->wx + firstgap;
+	unsigned int ny = mon->wy + firstgap;
+	unsigned int nw = mon->ww - mon->gappx;
+	unsigned int nh = mon->wh - mon->gappx;
+	unsigned int i;
+	for(i = 0, c = nexttiled(mon->clients); c; c = nexttiled(c->next)) {
+		unsigned int cx = nx;
+		unsigned int cy = ny;
+		unsigned int cw = nw;
+		unsigned int ch = nh;
+		char horizontalsplit = i % 2 == 0;
+		char reverse = (i / 2 % 2 == 1) * s;
+		if(i < n - 1){
+			if(horizontalsplit){
+				cw *= mon->mfact;
+				if(reverse){
+					cx += nw - cw;
+				}
+			}
+			else{
+				ch *= mon->mfact;
+				if(reverse){
+					cy += nh - ch;
+				}
+			}
+		}
+		resizegaps(c, cx, cy, cw, ch, mon->gappx, 0);
+
+		if(horizontalsplit){
+			nw -= cw;
+			if(!reverse){
+				nx += cw;
+			}
+		}
+		else{
+			nh -= ch;
+			if(!reverse){
+				ny += ch;
+			}
+		}
+
+		i++;
+	}
+}
+
+void
+dwindle(Monitor *mon) {
+	fibonacci(mon, 0);
+}
+
+void
+spiral(Monitor *mon) {
+	fibonacci(mon, 1);
 }
 
 int
