@@ -884,7 +884,7 @@ drawbar(Monitor *m)
 		if(!(occ & 1 << i || m->tagset[m->seltags] & 1 << i))
 			continue;
 		drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
-		drw_text(drw, x, 0, bt, bt, (bt - TEXTW("tags[i]")) / 2, tags[i], urg & 1 << i);
+		drw_text(drw, x, 0, bt, bt, lrpad / 2, tags[i], urg & 1 << i);
 		x += bt;
 	}
 	w = TEXTW(m->ltsymbol);
@@ -1850,7 +1850,7 @@ setup(void)
 		die("no fonts could be loaded.");
 	bt = drw->fonts->h + barmargin;
 	bh = bt + borderpx;
-	lrpad = bt - TEXTW(" ");
+	lrpad = bt - TEXTW("1");
 	updategeom();
 	/* init atoms */
 	utf8string = XInternAtom(dpy, "UTF8_STRING", False);
