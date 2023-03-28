@@ -1498,8 +1498,11 @@ removesystrayicon(Client *i)
 void
 resize(Client *c, int x, int y, int w, int h, int interact)
 {
-	if (applysizehints(c, &x, &y, &w, &h, interact))
+	if (applysizehints(c, &x, &y, &w, &h, interact)){
+		w -= c->bw * 2;
+		h -= c->bw * 2;
 		resizeclient(c, x, y, w, h);
+	}
 }
 
 void
@@ -1536,8 +1539,6 @@ resizeclient(Client *c, int x, int y, int w, int h)
 	c->oldy = c->y; c->y = wc.y = y;
 	c->oldw = c->w; c->w = wc.width = w;
 	c->oldh = c->h; c->h = wc.height = h;
-	wc.width -= c->bw * 2;
-	wc.height -= c->bw* 2;
 	wc.border_width = c->bw;
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
