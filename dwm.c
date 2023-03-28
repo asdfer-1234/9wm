@@ -87,7 +87,7 @@
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-enum { SchemeNorm, SchemeSel, SchemeBar0, SchemeBar1, SchemeBar2, SchemeBar3, SchemeBar4, SchemeBar5, Scheme0, Scheme1, Scheme2, Scheme3, Scheme4, Scheme5, Scheme6, Scheme7, Scheme8, Scheme9, Scheme10, Scheme11, Scheme12, Scheme13, Scheme14, Scheme15,  }; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemeBar0, SchemeBar1, SchemeBar2, SchemeBar3, SchemeBar4, SchemeBar5, SchemeSymbol}; /* color schemes */
 enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetSystemTray, NetSystemTrayOP, NetSystemTrayOrientation, NetSystemTrayOrientationHorz,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
@@ -228,9 +228,10 @@ static void quit(const Arg *arg);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void removesystrayicon(Client *i);
 static void resize(Client *c, int x, int y, int w, int h, int interact);
+static void resizewithoutborders(Client *c, int x, int y, int w, int h, int interact);
 static void resizeabsolute(Client *c, int x1, int y1, int x2, int y2, int interact);
-static void resizegaps(Client *c, int x, int y, int w, int h, int gap, int interact);
-static void resizeabsolutegaps(Client *c, int x1, int y1, int x2, int y2, int gap, int interact);
+static void resizegaps(Client *c, int x, int y, int w, int h, int interact);
+static void resizeabsolutegaps(Client *c, int x1, int y1, int x2, int y2, int interact);
 static void resizebarwin(Monitor *m);
 static void resizeclient(Client *c, int x, int y, int w, int h);
 static void resizemouse(const Arg *arg);
@@ -883,21 +884,20 @@ drawbar(Monitor *m)
 		if(!(occ & 1 << i || m->tagset[m->seltags] & 1 << i))
 			continue;
 		drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
-		drw_text(drw, x, 0, bt, bt, lrpad / 2, tags[i], urg & 1 << i);
+		drw_text(drw, x, 0, bt, bt, (bt - TEXTW("tags[i]")) / 2, tags[i], urg & 1 << i);
 		x += bt;
 	}
 	w = TEXTW(m->ltsymbol);
-	drw_setscheme(drw, scheme[SchemeNorm]);
+	drw_setscheme(drw, scheme[SchemeSymbol]);
 	x = drw_text(drw, x, 0, w, bt, lrpad / 2, m->ltsymbol, 0);
 
 	if ((w = m->ww - tw - stw - x) > bt) {
+		drw_setscheme(drw, scheme[SchemeNorm]);
 		if (m->sel) {
-			drw_setscheme(drw, scheme[m == selmon ? SchemeSel : SchemeNorm]);
 			drw_text(drw, x, 0, w, bt, lrpad / 2, m->sel->name, 0);
 			if (m->sel->isfloating)
 				drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
 		} else {
-			drw_setscheme(drw, scheme[SchemeNorm]);
 			drw_rect(drw, x, 0, w, bt, 1, 1);
 		}
 	}
@@ -1205,12 +1205,6 @@ loadxrdb()
       xrdb = XrmGetStringDatabase(resm);
 
       if (xrdb != NULL) {
-        XRDB_LOAD_COLOR("dwm.normbordercolor", normbordercolor);
-        XRDB_LOAD_COLOR("dwm.normbgcolor", normbgcolor);
-        XRDB_LOAD_COLOR("dwm.normfgcolor", normfgcolor);
-        XRDB_LOAD_COLOR("dwm.selbordercolor", selbordercolor);
-        XRDB_LOAD_COLOR("dwm.selbgcolor", selbgcolor);
-        XRDB_LOAD_COLOR("dwm.selfgcolor", selfgcolor);
 	XRDB_LOAD_COLOR("dwm.color0", color0);
 	XRDB_LOAD_COLOR("dwm.color1", color1);
 	XRDB_LOAD_COLOR("dwm.color2", color2);
@@ -1386,7 +1380,7 @@ movemouse(const Arg *arg)
 			&& (abs(nx - c->x) > snap || abs(ny - c->y) > snap))
 				togglefloating(NULL);
 			if (!selmon->lt[selmon->sellt]->arrange || c->isfloating)
-				resize(c, nx, ny, c->w, c->h, 1);
+				resizewithoutborders(c, nx, ny, c->w, c->h, 1);
 			break;
 		}
 	} while (ev.type != ButtonRelease);
@@ -1498,9 +1492,12 @@ removesystrayicon(Client *i)
 void
 resize(Client *c, int x, int y, int w, int h, int interact)
 {
+	resizewithoutborders(c, x, y, w - c->bw * 2, h - c->bw * 2, interact);
+}
+
+void
+resizewithoutborders(Client *c, int x, int y, int w, int h, int interact){
 	if (applysizehints(c, &x, &y, &w, &h, interact)){
-		w -= c->bw * 2;
-		h -= c->bw * 2;
 		resizeclient(c, x, y, w, h);
 	}
 }
@@ -1511,15 +1508,16 @@ resizeabsolute(Client *c, int x1, int y1, int x2, int y2, int interact){
 }
 
 void
-resizegaps(Client *c, int x, int y, int w, int h, int gap, int interact){
+resizegaps(Client *c, int x, int y, int w, int h, int interact){
+	int gap = c->mon->gappx;
 	int firstgap = gap / 2;
 	int secondgap = gap - firstgap;
 	resize(c, x + secondgap, y + secondgap, w - gap, h - gap, interact); 
 }
 
 void
-resizeabsolutegaps(Client *c, int x1, int y1, int x2, int y2, int gap, int interact){
-	resizegaps(c, x1, y1, x2 - x1, y2 - y1, gap, interact);
+resizeabsolutegaps(Client *c, int x1, int y1, int x2, int y2, int interact){
+	resizegaps(c, x1, y1, x2 - x1, y2 - y1, interact);
 }
 
 void
@@ -1601,7 +1599,7 @@ resizemouse(const Arg *arg)
 					togglefloating(NULL);
 			}
 			if (!selmon->lt[selmon->sellt]->arrange || c->isfloating)
-				resize(c, c->x, c->y, nw, nh, 1);
+				resizewithoutborders(c, c->x, c->y, nw, nh, 1);
 			break;
 		}
 	} while (ev.type != ButtonRelease);
@@ -2010,10 +2008,10 @@ tile(Monitor *m)
 
 	for (unsigned int i = 0; c; c = nexttiled(c->next), i++){
 		if (i < m->nmaster) {
-			resizeabsolutegaps(c, gapstartx, gapstarty + gapsizey * i / mastercount, between, gapstarty + gapsizey * (i + 1) / mastercount, gap, 0);
+			resizeabsolutegaps(c, gapstartx, gapstarty + gapsizey * i / mastercount, between, gapstarty + gapsizey * (i + 1) / mastercount, 0);
 		}
 		else {
-			resizeabsolutegaps(c, between, gapstarty + gapsizey * (i - mastercount) / slavecount, gapendx, gapstarty + gapsizey * (i - mastercount + 1) / slavecount, gap, 0);
+			resizeabsolutegaps(c, between, gapstarty + gapsizey * (i - mastercount) / slavecount, gapendx, gapstarty + gapsizey * (i - mastercount + 1) / slavecount, 0);
 		}
 
 	}
@@ -2048,8 +2046,7 @@ togglefloating(const Arg *arg)
 		return;
 	selmon->sel->isfloating = !selmon->sel->isfloating || selmon->sel->isfixed;
 	if (selmon->sel->isfloating)
-		resize(selmon->sel, selmon->sel->x, selmon->sel->y,
-			selmon->sel->w, selmon->sel->h, 0);
+		resizewithoutborders(selmon->sel, selmon->sel->x, selmon->sel->y, selmon->sel->w + selmon->sel->bw * 2, selmon->sel->h + selmon->sel->bw * 2, 0);
 	arrange(selmon);
 }
 
@@ -2669,7 +2666,7 @@ fibonacci(Monitor *mon, char s) {
 				}
 			}
 		}
-		resizegaps(c, cx, cy, cw, ch, mon->gappx, 0);
+		resizegaps(c, cx, cy, cw, ch, 0);
 
 		if(horizontalsplit){
 			nw -= cw;

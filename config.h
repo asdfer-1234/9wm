@@ -1,68 +1,47 @@
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static const unsigned int barmargin = 4;
-static const unsigned int borderpx  = 2;        /* border pixel of windows */
-static const unsigned int gappx     = 0;        /* gaps between windows */
-static const unsigned int snap      = 32;       /* snap pixel */
+static const unsigned int barmargin      = 4;
+static const unsigned int borderpx       = 2;        /* border pixel of windows */
+static const unsigned int gappx          = 0;        /* gaps between windows */
+static const unsigned int snap           = 32;       /* snap pixel */
 static const unsigned int systraypinning = 0;   /* 0: sloppy systray follows selected monitor, >0: pin systray to monitor X */
-static const unsigned int systrayonleft = 0;    /* 0: systray in the right corner, >0: systray on left of status text */
+static const unsigned int systrayonleft  = 0;    /* 0: systray in the right corner, >0: systray on left of status text */
 static const unsigned int systrayspacing = 2;   /* systray spacing */
 static const int systraypinningfailfirst = 1;   /* 1: if pinning fails, display systray on the first monitor, False: display systray on the last monitor*/
-static const int showsystray        = 1;        /* 0 means no systray */
-static const int showbar            = 1;        /* 0 means no bar */
-static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[]          = { "monospace:size=12", "Symbols Nerd Font Mono:size=12" };
-static const int focusonwheel       = 1;
-static const char dmenufont[]       = "monospace:size=12";
-static char normbgcolor[]           = "#222222";
-static char normbordercolor[]       = "#444444";
-static char normfgcolor[]           = "#bbbbbb";
-static char selfgcolor[]            = "#eeeeee";
-static char selbordercolor[]        = "#005577";
-static char selbgcolor[]            = "#005577";
-static char color0[]                = "#ffffff";
-static char color1[]                = "#ffffff";
-static char color2[]                = "#ffffff";
-static char color3[]                = "#ffffff";
-static char color4[]                = "#ffffff";
-static char color5[]                = "#ffffff";
-static char color6[]                = "#ffffff";
-static char color7[]                = "#ffffff";
-static char color8[]                = "#ffffff";
-static char color9[]                = "#ffffff";
-static char color10[]               = "#ffffff";
-static char color11[]               = "#ffffff";
-static char color12[]               = "#ffffff";
-static char color13[]               = "#ffffff";
-static char color14[]               = "#ffffff";
-static char color15[]               = "#ffffff";
+static const int showsystray             = 1;        /* 0 means no systray */
+static const int showbar                 = 1;        /* 0 means no bar */
+static const int topbar                  = 1;        /* 0 means bottom bar */
+static const char *fonts[]               = { "monospace:size=12", "Symbols Nerd Font Mono:size=12" };
+static const int focusonwheel            = 1;
+static const char dmenufont[]            = "monospace:size=12";
+static char color0[]                     = "#000000";
+static char color1[]                     = "#000000";
+static char color2[]                     = "#000000";
+static char color3[]                     = "#000000";
+static char color4[]                     = "#000000";
+static char color5[]                     = "#000000";
+static char color6[]                     = "#000000";
+static char color7[]                     = "#000000";
+static char color8[]                     = "#ffffff";
+static char color9[]                     = "#ffffff";
+static char color10[]                    = "#ffffff";
+static char color11[]                    = "#ffffff";
+static char color12[]                    = "#ffffff";
+static char color13[]                    = "#ffffff";
+static char color14[]                    = "#ffffff";
+static char color15[]                    = "#ffffff";
 static char *colors[][3] = {
-	/*               fg           bg           border   */
-	[SchemeNorm] = { normfgcolor, normbgcolor, normbordercolor },
-	[SchemeSel]  = { selfgcolor,  selbgcolor,  selbordercolor  },
-	[SchemeBar0] = { color9,      normbgcolor, normbordercolor },
-	[SchemeBar1] = { color10,     normbgcolor, normbordercolor },
-	[SchemeBar2] = { color11,     normbgcolor, normbordercolor },
-	[SchemeBar3] = { color12,     normbgcolor, normbordercolor },
-	[SchemeBar4] = { color13,     normbgcolor, normbordercolor },
-	[SchemeBar5] = { color14,     normbgcolor, normbordercolor },
-	[Scheme0]    = { color0,      normbgcolor, normbordercolor },
-	[Scheme1]    = { color1,      normbgcolor, normbordercolor },
-	[Scheme2]    = { color2,      normbgcolor, normbordercolor },
-	[Scheme3]    = { color3,      normbgcolor, normbordercolor },
-	[Scheme4]    = { color4,      normbgcolor, normbordercolor },
-	[Scheme5]    = { color5,      normbgcolor, normbordercolor },
-	[Scheme6]    = { color6,      normbgcolor, normbordercolor },
-	[Scheme7]    = { color7,      normbgcolor, normbordercolor },
-	[Scheme8]    = { color8,      normbgcolor, normbordercolor },
-	[Scheme9]    = { color9,      normbgcolor, normbordercolor },
-	[Scheme10]   = { color10,     normbgcolor, normbordercolor },
-	[Scheme11]   = { color11,     normbgcolor, normbordercolor },
-	[Scheme12]   = { color12,     normbgcolor, normbordercolor },
-	[Scheme13]   = { color13,     normbgcolor, normbordercolor },
-	[Scheme14]   = { color14,     normbgcolor, normbordercolor },
-	[Scheme15]   = { color15,     normbgcolor, normbordercolor },
+	/*               fg       bg       border   */
+	[SchemeNorm] = { color15, color7,  color7  },
+	[SchemeSel]  = { color0,  color15, color15 },
+	[SchemeBar0] = { color9,  color7,  color7  },
+	[SchemeBar1] = { color10, color7,  color7  },
+	[SchemeBar2] = { color11, color7,  color7  },
+	[SchemeBar3] = { color12, color7,  color7  },
+	[SchemeBar4] = { color13, color7,  color7  },
+	[SchemeBar5] = { color14, color7,  color7  },
+	[SchemeSymbol]={ color0,  color10, color15 },
 };
 
 /* tagging */
@@ -79,10 +58,10 @@ static const Rule rules[] = {
 };
 
 /* layout(s) */
-static const float mfact     = 0.5; /* factor of master area size [0.05..0.95] */
-static const int nmaster     = 1;    /* number of clients in master area */
-static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
-static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
+static const float mfact        = 0.5; /* factor of master area size [0.05..0.95] */
+static const int nmaster        = 1;   /* number of clients in master area */
+static const int resizehints    = 1;   /* 1 means respect size hints in tiled resizals */
+static const int lockfullscreen = 0;   /* 1 will force focus on the fullscreen window */
 
 
 static const Layout layouts[] = {
@@ -107,7 +86,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[]   = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbordercolor, "-sf", selfgcolor, NULL };
+static const char *dmenucmd[]   = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", color7, "-nf", color15, "-sb", color15, "-sf", color0, NULL };
 static const char *termcmd[]    = { "st", NULL };
 static const char *firefoxcmd[] = { "firefox", NULL };
 
@@ -130,8 +109,8 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_comma,  setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_p,      zoom,           {0} },
 	{ MODKEY,                       XK_w,      killclient,     {0} },
-	{ MODKEY,                       XK_asciitilde,  view,           {.ui = ~0 } },
-	{ MODKEY|ShiftMask,             XK_asciitilde,  tag,            {.ui = ~0 } },
+	{ MODKEY,                       XK_grave,  view,           {.ui = ~0 } },
+	{ MODKEY|ShiftMask,             XK_grave,  tag,            {.ui = ~0 } },
 	{ MODKEY,                       XK_minus,  setgaps,        {.i = -1 } },
 	{ MODKEY,                       XK_equal,  setgaps,        {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_equal,  setgaps,        {.i = 0 } },
