@@ -1,7 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static const unsigned int barmargin      = 4;
+static const unsigned int barmargin      = 8;
 static const unsigned int borderpx       = 2;        /* border pixel of windows */
 static const unsigned int gappx          = 0;        /* gaps between windows */
 static const unsigned int snap           = 32;       /* snap pixel */
@@ -12,7 +12,7 @@ static const int systraypinningfailfirst = 1;   /* 1: if pinning fails, display 
 static const int showsystray             = 1;        /* 0 means no systray */
 static const int showbar                 = 1;        /* 0 means no bar */
 static const int topbar                  = 1;        /* 0 means bottom bar */
-static const char *fonts[]               = { "JetBrainsMono:size=12:bold=true", "Symbols Nerd Font Mono:size=16" };
+static const char *fonts[]               = { "JetBrainsMono:size=12:style=Bold", "Symbols Nerd Font Mono:size=12" };
 static const int focusonwheel            = 1;
 static const char dmenufont[]            = "JetBrainsMono:size=12";
 static char color0[]                     = "#000000";
@@ -32,15 +32,15 @@ static char color13[]                    = "#ffffff";
 static char color14[]                    = "#ffffff";
 static char color15[]                    = "#ffffff";
 static char *colors[][3] = {
-	/*               fg       bg       border   */
-	[SchemeNorm] = { color15, color7,  color7  },
+	/*               fg       bg       border  */
+	[SchemeNorm] = { color15, color0,  color8  },
 	[SchemeSel]  = { color0,  color15, color15 },
-	[SchemeBar0] = { color9,  color7,  color7  },
-	[SchemeBar1] = { color10, color7,  color7  },
-	[SchemeBar2] = { color11, color7,  color7  },
-	[SchemeBar3] = { color12, color7,  color7  },
-	[SchemeBar4] = { color13, color7,  color7  },
-	[SchemeBar5] = { color14, color7,  color7  },
+	[SchemeBar0] = { color9,  color0,  color8  },
+	[SchemeBar1] = { color10, color0,  color8  },
+	[SchemeBar2] = { color11, color0,  color8  },
+	[SchemeBar3] = { color12, color0,  color8  },
+	[SchemeBar4] = { color13, color0,  color8  },
+	[SchemeBar5] = { color14, color0,  color8  },
 	[SchemeSymbol]={ color0,  color10, color15 },
 };
 
@@ -77,7 +77,7 @@ static const Layout layouts[] = {
 #define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
-	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
+{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
 
@@ -86,7 +86,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[]   = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", color7, "-nf", color15, "-sb", color15, "-sf", color0, NULL };
+static const char *dmenucmd[]   = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", color10, "-nf", color0, "-sb", color15, "-sf", color0, NULL };
 static const char *termcmd[]    = { "st", NULL };
 static const char *firefoxcmd[] = { "firefox", NULL };
 
