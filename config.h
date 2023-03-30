@@ -14,7 +14,7 @@ static const int showbar                 = 1;        /* 0 means no bar */
 static const int topbar                  = 1;        /* 0 means bottom bar */
 static const char *fonts[]               = { "JetBrainsMono:size=12:bold=true", "Symbols Nerd Font Mono:size=16" };
 static const int focusonwheel            = 1;
-static const char dmenufont[]            = "monospace:size=12";
+static const char dmenufont[]            = "JetBrainsMono:size=12";
 static char color0[]                     = "#000000";
 static char color1[]                     = "#000000";
 static char color2[]                     = "#000000";
