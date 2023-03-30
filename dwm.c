@@ -1492,7 +1492,12 @@ removesystrayicon(Client *i)
 void
 resize(Client *c, int x, int y, int w, int h, int interact)
 {
-	resizewithoutborders(c, x, y, w - c->bw * 2, h - c->bw * 2, interact);
+	if(c->isfloating){
+		resizewithoutborders(c, x, y, w, h, interact);
+	}
+	else{
+		resizewithoutborders(c, x, y, w - c->bw * 2, h - c->bw * 2, interact);
+	}
 }
 
 void
