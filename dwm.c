@@ -87,7 +87,7 @@
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-enum { SchemeNorm, SchemeSel, SchemeBar0, SchemeBar1, SchemeBar2, SchemeBar3, SchemeBar4, SchemeBar5, SchemeSymbol}; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemeUrgentNorm, SchemeUrgentSel, SchemeBar0, SchemeBar1, SchemeBar2, SchemeBar3, SchemeBar4, SchemeBar5, SchemeBar6, SchemeSymbol}; /* color schemes */
 enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetSystemTray, NetSystemTrayOP, NetSystemTrayOrientation, NetSystemTrayOrientationHorz,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
@@ -883,8 +883,27 @@ drawbar(Monitor *m)
 		/* Do not draw vacant tags */
 		if(!(occ & 1 << i || m->tagset[m->seltags] & 1 << i))
 			continue;
-		drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
-		drw_text(drw, x, 0, bt, bt, lrpad / 2, tags[i], urg & 1 << i);
+		int selected = m->tagset[m->seltags] & 1 << i;
+		int urgent = urg & 1 << i;
+		int currentscheme;
+		if(selected){
+			if(urgent){
+				currentscheme = SchemeUrgentSel;
+			}
+			else{
+				currentscheme = SchemeSel;
+			}
+		}
+		else{
+			if(urgent){
+				currentscheme = SchemeUrgentNorm;
+			}
+			else{
+				currentscheme = SchemeNorm;
+			}
+		}
+		drw_setscheme(drw, scheme[currentscheme]);
+		drw_text(drw, x, 0, bt, bt, lrpad / 2, tags[i], 0);
 		x += bt;
 	}
 	w = TEXTW(m->ltsymbol);

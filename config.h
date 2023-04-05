@@ -32,16 +32,19 @@ static char color13[]                    = "#ffffff";
 static char color14[]                    = "#ffffff";
 static char color15[]                    = "#ffffff";
 static char *colors[][3] = {
-	/*               fg       bg       border  */
-	[SchemeNorm] = { color15, color0,  color8  },
-	[SchemeSel]  = { color0,  color15, color15 },
-	[SchemeBar0] = { color9,  color0,  color8  },
-	[SchemeBar1] = { color10, color0,  color8  },
-	[SchemeBar2] = { color11, color0,  color8  },
-	[SchemeBar3] = { color12, color0,  color8  },
-	[SchemeBar4] = { color13, color0,  color8  },
-	[SchemeBar5] = { color14, color0,  color8  },
-	[SchemeSymbol]={ color0,  color10, color15 },
+	/*                     fg       bg       border  */
+	[SchemeNorm]       = { color15, color0,  color8  },
+	[SchemeSel]        = { color0,  color15, color15 },
+	[SchemeUrgentNorm] = { color9,  color0,  color9  },
+	[SchemeUrgentSel]  = { color0,  color9,  color9  },
+	[SchemeBar0]       = { color15, color0,  color8  },
+	[SchemeBar1]       = { color9,  color0,  color8  },
+	[SchemeBar2]       = { color10, color0,  color8  },
+	[SchemeBar3]       = { color11, color0,  color8  },
+	[SchemeBar4]       = { color12, color0,  color8  },
+	[SchemeBar5]       = { color13, color0,  color8  },
+	[SchemeBar6]       = { color14, color0,  color8  },
+	[SchemeSymbol]     = { color0,  color10, color15 },
 };
 
 /* tagging */
