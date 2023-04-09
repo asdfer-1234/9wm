@@ -58,6 +58,8 @@ static const Rule rules[] = {
 	/* class      instance    title       tags mask     isfloating   monitor */
 	{ "class",    NULL,       NULL,       0,            0,           -1 },
 	{ "discord",  NULL,       NULL,       1 << 3,       0,           -1 },
+	{ "webcord",  NULL,       NULL,       1 << 3,       0,           -1 },
+	{ "WebCord",  NULL,       NULL,       1 << 3,       0,           -1 },
 };
 
 /* layout(s) */
@@ -90,8 +92,11 @@ static const Layout layouts[] = {
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[]   = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", color10, "-nf", color0, "-sb", color15, "-sf", color0, NULL };
+static const char *dmenu_exitcmd[]   = { "dmenu_exit", "-m", dmenumon, "-fn", dmenufont, "-nb", color9, "-nf", color0, "-sb", color15, "-sf", color0, NULL };
 static const char *termcmd[]    = { "st", NULL };
 static const char *firefoxcmd[] = { "firefox", NULL };
+static const char *nemocmd[]    = { "nemo", NULL };
+static const char *webcordcmd[]    = { "webcord", NULL };
 
 static const char *upvol[]   = { "amixer", "-q", "set", "Master", "5%+", "unmute", NULL };
 static const char *downvol[] = { "amixer", "-q", "set", "Master", "5%-", "unmute", NULL };
@@ -101,8 +106,11 @@ static const char *updatebar[]={ "bash" "~/computer/packages/suckless/dwm-bar/dw
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ MODKEY,                       XK_space,  spawn,          {.v = dmenucmd } },
+	{ MODKEY|ShiftMask,             XK_space,  spawn,          {.v = dmenu_exitcmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_a,      spawn,          {.v = firefoxcmd } },
+	{ MODKEY,                       XK_s,      spawn,          {.v = nemocmd } },
+	{ MODKEY,                       XK_d,      spawn,          {.v = webcordcmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = +1 } },
