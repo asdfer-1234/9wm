@@ -33,17 +33,17 @@ static char color14[]                    = "#ffffff";
 static char color15[]                    = "#ffffff";
 static char *colors[][3] = {
 	/*                     fg       bg       border  */
-	[SchemeNorm]       = { color15, color0,  color8  },
+	[SchemeNorm]       = { color15, color0,  color0  },
 	[SchemeSel]        = { color0,  color15, color15 },
 	[SchemeUrgentNorm] = { color9,  color0,  color9  },
 	[SchemeUrgentSel]  = { color0,  color9,  color9  },
-	[SchemeBar0]       = { color15, color0,  color8  },
-	[SchemeBar1]       = { color9,  color0,  color8  },
-	[SchemeBar2]       = { color10, color0,  color8  },
-	[SchemeBar3]       = { color11, color0,  color8  },
-	[SchemeBar4]       = { color12, color0,  color8  },
-	[SchemeBar5]       = { color13, color0,  color8  },
-	[SchemeBar6]       = { color14, color0,  color8  },
+	[SchemeBar0]       = { color15, color0,  color0  },
+	[SchemeBar1]       = { color9,  color0,  color0  },
+	[SchemeBar2]       = { color10, color0,  color0  },
+	[SchemeBar3]       = { color11, color0,  color0  },
+	[SchemeBar4]       = { color12, color0,  color0  },
+	[SchemeBar5]       = { color13, color0,  color0  },
+	[SchemeBar6]       = { color14, color0,  color0  },
 	[SchemeSymbol]     = { color0,  color10, color15 },
 };
 
@@ -101,6 +101,10 @@ static const char *webcordcmd[]    = { "webcord", NULL };
 static const char *upvol[]   = { "amixer", "-q", "set", "Master", "5%+", "unmute", NULL };
 static const char *downvol[] = { "amixer", "-q", "set", "Master", "5%-", "unmute", NULL };
 static const char *mutevol[] = { "amixer", "-q", "set", "Master", "toggle", NULL };
+
+static const char *upbright[]= { "light", "-A", "5" };
+static const char *downbright[]= { "light", "-U", "5" };
+static const char *fullbright[]= { "light", "-S", "100" };
 static const char *updatebar[]={ "bash" "~/computer/packages/suckless/dwm-bar/dwm_bar_onetime.sh" };
 
 static const Key keys[] = {
@@ -128,7 +132,10 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_f,      togglefullscreen, {0} },
 	{ MODKEY,                       XK_t,      spawn,          {.v = upvol} },
 	{ MODKEY,                       XK_g,      spawn,          {.v = downvol} },
-	{ MODKEY,                       XK_v,      spawn,          {.v = mutevol} },
+	{ MODKEY,                       XK_b,      spawn,          {.v = mutevol} },
+	{ MODKEY,                       XK_y,      spawn,          {.v = upbright} },
+	{ MODKEY,                       XK_h,      spawn,          {.v = downbright} },
+	{ MODKEY,                       XK_n,      spawn,          {.v = fullbright} },
 	{ MODKEY,                       XK_z,      setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                       XK_x,      setlayout,      {.v = &layouts[3]} },
 	{ MODKEY,                       XK_c,      setlayout,      {.v = &layouts[4]} },
