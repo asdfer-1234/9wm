@@ -12,7 +12,7 @@ static const int systraypinningfailfirst = 1;   /* 1: if pinning fails, display 
 static const int showsystray             = 0;        /* 0 means no systray */
 static const int showbar                 = 1;        /* 0 means no bar */
 static const int topbar                  = 1;        /* 0 means bottom bar */
-static const char *fonts[]               = { "Terminus:size=12:style=Bold", "Symbols Nerd Font Mono:size=12:antialias=false", "DungGeunMo:size=12:antialias=false" };
+static const char *fonts[]               = { "Terminus:size=12:style=Bold", "Glyph:size=12", "Cozette:size=12:antialias=false", "Symbols Nerd Font Mono:size=12:antialias=false", "DungGeunMo:size=12:antialias=false" };
 static const int focusonwheel            = 1;
 static const char dmenufont[]            = "Terminus:size=12:style=Bold";
 static char color0[]                     = "#000000";
@@ -96,51 +96,20 @@ static const Layout layouts[] = {
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[]      = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", color10, "-nf", color0, "-sb", color15, "-sf", color0, NULL };
-static const char *dmenu_exitcmd[] = { "dmenu_exit", "-m", dmenumon, "-fn", dmenufont, "-nb", color9, "-nf", color0, "-sb", color15, "-sf", color0, NULL };
-static const char *termcmd[]       = { "alacritty", NULL };
-static const char *firefoxcmd[]    = { "firefox", NULL };
-static const char *discordcmd[]    = { "discord", NULL };
-static const char *godotcmd[]      = { "godot", NULL };
-static const char *unityhubcmd[]   = { "unityhub", NULL };
-static const char *gimpcmd[]       = { "gimp", NULL };
-static const char *kritacmd[]      = { "krita", NULL };
-static const char *maimcmd[]       = { "screenshot", NULL };
-
-static const char *upvol[]         = { "amixer", "-q", "set", "Master", "5%+", "unmute", NULL };
-static const char *downvol[]       = { "amixer", "-q", "set", "Master", "5%-", "unmute", NULL };
-static const char *mutevol[]       = { "amixer", "-q", "set", "Master", "toggle", NULL };
-
-static const char *upbright[]      = { "light", "-A", "5" };
-static const char *downbright[]    = { "light", "-U", "5" };
-static const char *fullbright[]    = { "light", "-S", "100" };
-static const char *updatebar[]     = { "bash" "~/computer/packages/suckless/dwm-bar/dwm_bar_onetime.sh" };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
-	/* spawn */
-	{ MODKEY,                       XK_space,  spawn,          {.v = dmenucmd } },
-	{ MODKEY|ShiftMask,             XK_space,  spawn,          {.v = dmenu_exitcmd } },
-	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
-	{ MODKEY,                       XK_a,      spawn,          {.v = firefoxcmd } },
-	{ MODKEY,                       XK_d,      spawn,          {.v = discordcmd } },
-	{ MODKEY|Mod1Mask,              XK_a,      spawn,          {.v = unityhubcmd } },
-	{ MODKEY|Mod1Mask,              XK_s,      spawn,          {.v = godotcmd } },
-	{ MODKEY|Mod1Mask,              XK_d,      spawn,          {.v = gimpcmd } },
-	{ MODKEY|Mod1Mask,              XK_f,      spawn,          {.v = kritacmd} },
-	{ MODKEY,                       XK_c,      spawn,          {.v = maimcmd } },
-
-
 	/* bar */
 	{ MODKEY,                       XK_v,      togglebar,      {0} },
 	
 	/* window focusing */
-	{ MODKEY,                       XK_j,      focusstack,     {.i = -1 } },
-	{ MODKEY,                       XK_k,      focusstack,     {.i = +1 } },
+	{ MODKEY,                       XK_n,      focusstack,     {.i = -1 } },
+	{ MODKEY,                       XK_e,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_p,      zoom,           {0} },
 
 	/* window positioning */
-	{ MODKEY,                       XK_u,      incnmaster,     {.i = +1 } },
-	{ MODKEY,                       XK_i,      incnmaster,     {.i = -1 } },
+	{ MODKEY,                       XK_l,      incnmaster,     {.i = +1 } },
+	{ MODKEY,                       XK_u,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_m,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_comma,  setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_minus,  setgaps,        {.i = -1 } },
@@ -151,14 +120,6 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_f,      togglefullscreen, {0} },
 	{ MODKEY,                       XK_w,      killclient,     {0} },
 
-	/* media */
-	{ MODKEY,                       XK_t,      spawn,          {.v = upvol} },
-	{ MODKEY,                       XK_g,      spawn,          {.v = downvol} },
-	{ MODKEY,                       XK_b,      spawn,          {.v = mutevol} },
-	{ MODKEY,                       XK_y,      spawn,          {.v = upbright} },
-	{ MODKEY,                       XK_h,      spawn,          {.v = downbright} },
-	{ MODKEY|ShiftMask,             XK_y,      spawn,          {.v = fullbright} },
-	
 	/* tagging */
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
@@ -169,6 +130,9 @@ static const Key keys[] = {
 	TAGKEYS(                        XK_7,                      6)
 	TAGKEYS(                        XK_8,                      7)
 	TAGKEYS(                        XK_9,                      8)
+	TAGKEYS(                        XK_0,                      9)
+	TAGKEYS(                        XK_minus,                  10)
+	TAGKEYS(                        XK_equal,                  11)
 	{ MODKEY,                       XK_grave,  view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_grave,  tag,            {.ui = ~0 } },
 
