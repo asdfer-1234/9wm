@@ -103,13 +103,13 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_v,      togglebar,      {0} },
 	
 	/* window focusing */
-	{ MODKEY,                       XK_n,      focusstack,     {.i = -1 } },
-	{ MODKEY,                       XK_e,      focusstack,     {.i = +1 } },
+	{ MODKEY,                       XK_j,      focusstack,     {.i = -1 } },
+	{ MODKEY,                       XK_k,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_p,      zoom,           {0} },
 
 	/* window positioning */
-	{ MODKEY,                       XK_l,      incnmaster,     {.i = +1 } },
-	{ MODKEY,                       XK_u,      incnmaster,     {.i = -1 } },
+	{ MODKEY,                       XK_u,      incnmaster,     {.i = +1 } },
+	{ MODKEY,                       XK_i,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_m,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_comma,  setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_minus,  setgaps,        {.i = -1 } },
